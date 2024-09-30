@@ -22,18 +22,28 @@ $stmt->execute();
 $result = $stmt->get_result();
 
 // Verifica se uma nota foi selecionada
+$titulo_nota = '';
 $conteudo_nota = '';
 if (isset($_GET['nota_id'])) {
     $nota_id = $_GET['nota_id'];
 
-    // Buscar o conteúdo da nota com base no ID selecionado
-    $sql = "SELECT texto_nota FROM notas WHERE id = ?";
+    // Buscar o título e o conteúdo da nota com base no ID selecionado
+    $sql = "SELECT titulo_nota, texto_nota FROM notas WHERE id = ?";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("i", $nota_id);
     $stmt->execute();
     $result_nota = $stmt->get_result();
-    $row_nota = $result_nota->fetch_assoc();
-    $conteudo_nota = $row_nota['texto_nota'];
+
+    // Verifica se algum resultado foi retornado
+    if ($row_nota = $result_nota->fetch_assoc()) {
+        $titulo_nota = $row_nota['titulo_nota'];
+        $conteudo_nota = $row_nota['texto_nota'];
+    } else {
+        // Caso o ID não exista no banco de dados, definir valores padrão
+        echo "Nota não encontrada!";
+        $titulo_nota = '';
+        $conteudo_nota = '';
+    }
 }
 
 $conn->close();
@@ -68,7 +78,7 @@ $conn->close();
 
             <div class="container">
                 <label for="titulo">Título:</label>
-                <input type="text" name="titulo" class="texto" id="titulo" required><?= htmlspecialchars($titulo_nota); ?>
+                <input type="text" name="titulo" class="texto" id="titulo" required value="<?= htmlspecialchars($titulo_nota); ?>">
             </div>
 
             <div class="container">
