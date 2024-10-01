@@ -17,7 +17,7 @@ if (isset($_POST["salvar"])) {
         }
     } else {
         // Atualiza a nota existente
-        $sql = "UPDATE notas SET titulo_nota = ?, texto_nota = ? WHERE id = ?";
+        $sql = "UPDATE notas SET titulo_nota = ?, texto_nota = ? WHERE id _nota= ?";
         $stmt = $conn->prepare($sql);
         $stmt->bind_param("ssi", $titulo, $conteudo, $nota_id);
         if ($stmt->execute()) {
@@ -30,7 +30,7 @@ if (isset($_POST["salvar"])) {
 
 if (isset($_POST["deletar"]) && isset($_POST['nota_id'])) {
     $nota_id = $_POST['nota_id']; // Usa o ID da nota para deletar
-    $sql = "DELETE FROM notas WHERE id = ?";
+    $sql = "DELETE FROM notas WHERE id_nota = ?";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("i", $nota_id);
 
@@ -42,7 +42,7 @@ if (isset($_POST["deletar"]) && isset($_POST['nota_id'])) {
 }
 
 // Buscar todos os títulos de notas para exibir no <select>
-$sql = "SELECT id, titulo_nota FROM notas";
+$sql = "SELECT id_nota, titulo_nota FROM notas";
 $stmt = $conn->prepare($sql);
 $stmt->execute();
 $result = $stmt->get_result();
@@ -55,7 +55,7 @@ if (isset($_GET['nota_id'])) {
     $nota_id = $_GET['nota_id'];
 
     // Buscar o título e o conteúdo da nota com base no ID selecionado
-    $sql = "SELECT titulo_nota, texto_nota FROM notas WHERE id = ?";
+    $sql = "SELECT titulo_nota, texto_nota FROM notas WHERE id_nota = ?";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("i", $nota_id);
     $stmt->execute();
@@ -93,7 +93,7 @@ $conn->close();
         <select name="nota_id" id="notas" onchange="this.form.submit()">
             <option value="">Nova nota</option>
             <?php while ($titulo = $result->fetch_assoc()): ?>
-                <option value="<?= $titulo['id']; ?>" <?= isset($nota_id) && $nota_id == $titulo['id'] ? 'selected' : ''; ?>>
+                <option value="<?= $titulo['id_nota']; ?>" <?= isset($nota_id) && $nota_id == $titulo['id_nota'] ? 'selected' : ''; ?>>
                     <?= htmlspecialchars($titulo['titulo_nota']); ?>
                 </option>
             <?php endwhile; ?>
