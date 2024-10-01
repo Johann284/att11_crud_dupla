@@ -1,7 +1,9 @@
 <?php
 include 'bd.php';
+session_start(); // Inicia a sessão
 
-// Buscar todos os títulos de notas para exibir no <select>
+
+// Buscar todos os usuários
 $sql = "SELECT id_usuario, nome_usuario FROM usuario";
 $stmt = $conn->prepare($sql);
 $stmt->execute();
@@ -12,10 +14,13 @@ if (isset($_POST["adicionar_usuario"])) {
     $novo_nome = trim($_POST["nome"]);
     $nova_senha = trim($_POST["senha"]);
     
+    // Hash da senha
+    $senha_hash = password_hash($nova_senha, PASSWORD_DEFAULT);
+    
     // Inserir o nome de usuário e a senha em texto simples
     $sql = "INSERT INTO usuario (nome_usuario, senha) VALUES (?, ?)";
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("ss", $novo_nome, $nova_senha);
+    $stmt->bind_param("ss", $novo_nome, $senha_hash);
 
     if ($stmt->execute()) {
         echo "<p>Usuário adicionado com sucesso!</p>";
@@ -44,15 +49,16 @@ if (isset($_POST["entrar"])) {
     $senha = trim($_POST["senha"]);
 
     // Buscar a senha do banco de dados baseada no nome de usuário
-    $sql = "SELECT senha FROM usuario WHERE nome_usuario = ?";
+    $sql = "SELECT id_usuario, senha FROM usuario WHERE nome_usuario = ?";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("s", $nome);
     $stmt->execute();
-    $stmt->bind_result($senha_armazenada);
+    $stmt->bind_result($id_usuario, $senha_armazenada);
     $stmt->fetch();
 
     // Verificar se a senha inserida é igual à armazenada
-    if ($senha === $senha_armazenada) {
+    if (password_verify($senha, $senha_armazenada)) {
+        $_SESSION['id_usuario'] = $id_usuario; // Salva o ID do usuário na sessão
         echo "<p>Login bem-sucedido!</p>";
         header("Location: index.php");
         exit();
