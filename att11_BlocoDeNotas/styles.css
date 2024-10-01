@@ -5,12 +5,21 @@
     color: aliceblue;
 }
 
+input {
+    color: #1b1b1b;
+}
+
 body {
     display: block;
     justify-content: center;
     text-align: center;
     margin-top: 10px;
     background-color: #1b1b1b;
+}
+
+.digitar{
+    color: #1b1b1b;
+    font-size: large;
 }
 
 
@@ -41,6 +50,7 @@ select{
 }
 
 .acoes {
+    color: aliceblue;
     margin-top: 30px;
     background-color: darkslategray;
     height: 50px;
