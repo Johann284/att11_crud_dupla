@@ -4,14 +4,40 @@ include 'bd.php';
 if (isset($_POST["salvar"])) {
     $titulo = $_POST['titulo'];
     $conteudo = $_POST['conteudo'];
-    $sql = "INSERT INTO notas (titulo_nota, texto_nota) VALUES (?, ?)";
+    $nota_id = $_POST['nota_id']; // Nota o ID
+
+    if ($nota_id == 0) { // Se não há id, cria uma nova nota
+        $sql = "INSERT INTO notas (titulo_nota, texto_nota) VALUES (?, ?)";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("ss", $titulo, $conteudo);
+        if ($stmt->execute()) {
+            echo "Nota salva com sucesso!";
+        } else {
+            echo "Erro ao salvar nota.";
+        }
+    } else {
+        // Atualiza a nota existente
+        $sql = "UPDATE notas SET titulo_nota = ?, texto_nota = ? WHERE id = ?";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("ssi", $titulo, $conteudo, $nota_id);
+        if ($stmt->execute()) {
+            echo "Nota alterada com sucesso!";
+        } else {
+            echo "Erro ao alterar nota.";
+        }
+    }
+}
+
+if (isset($_POST["deletar"]) && isset($_POST['nota_id'])) {
+    $nota_id = $_POST['nota_id']; // Usa o ID da nota para deletar
+    $sql = "DELETE FROM notas WHERE id = ?";
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("ss", $titulo, $conteudo);
+    $stmt->bind_param("i", $nota_id);
 
     if ($stmt->execute()) {
-        echo "Nota salva com sucesso!";
+        echo "Nota deletada com sucesso!";
     } else {
-        echo "Erro ao salvar nota.";
+        echo "Erro ao deletar nota.";
     }
 }
 
@@ -24,6 +50,7 @@ $result = $stmt->get_result();
 // Verifica se uma nota foi selecionada
 $titulo_nota = '';
 $conteudo_nota = '';
+$nota_id = 0;
 if (isset($_GET['nota_id'])) {
     $nota_id = $_GET['nota_id'];
 
@@ -39,10 +66,11 @@ if (isset($_GET['nota_id'])) {
         $titulo_nota = $row_nota['titulo_nota'];
         $conteudo_nota = $row_nota['texto_nota'];
     } else {
-        // Caso o ID não exista no banco de dados, definir valores padrão
+        if ($titulo_nota == null && $conteudo_nota == null) {
+            
+        } else {
         echo "Nota não encontrada!";
-        $titulo_nota = '';
-        $conteudo_nota = '';
+        }
     }
 }
 
@@ -54,7 +82,7 @@ $conn->close();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="styles.css">
     <title>Bloco de Notas</title>
 </head>
 <body>
@@ -63,7 +91,7 @@ $conn->close();
     <form method="GET" action="">
         <label for="notas">Selecione uma nota:</label>
         <select name="nota_id" id="notas" onchange="this.form.submit()">
-            <option value="">-- Escolha uma nota --</option>
+            <option value="">Nova nota</option>
             <?php while ($titulo = $result->fetch_assoc()): ?>
                 <option value="<?= $titulo['id']; ?>" <?= isset($nota_id) && $nota_id == $titulo['id'] ? 'selected' : ''; ?>>
                     <?= htmlspecialchars($titulo['titulo_nota']); ?>
@@ -73,8 +101,9 @@ $conn->close();
     </form>
 
     <section>
-        <!-- Formulário para salvar nova nota -->
+        <!-- Formulário para salvar ou deletar uma nota -->
         <form method="POST" action="">
+            <input type="hidden" name="nota_id" value="<?= $nota_id ?>">
 
             <div class="container">
                 <label for="titulo">Título:</label>
@@ -85,8 +114,10 @@ $conn->close();
                 <label for="conteudo">Texto:</label>
                 <textarea name="conteudo" class="texto" id="conteudo" rows="20" required><?= htmlspecialchars($conteudo_nota); ?></textarea>
             </div>
-
-            <input type="submit" name="salvar" value="Salvar" id="salvar">
+            <div>
+                <input type="submit" name="deletar" value="Deletar" class="acoes">
+                <input type="submit" name="salvar" value="Salvar" class="acoes">
+            </div>
         </form>
     </section>
 
